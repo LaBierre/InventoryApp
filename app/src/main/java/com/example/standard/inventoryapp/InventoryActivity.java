@@ -1,13 +1,16 @@
 package com.example.standard.inventoryapp;
 
-import android.app.LoaderManager;
+
 import android.content.ContentUris;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -22,6 +25,8 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
     private InventoryCursorAdapter mCursorAdapter;
 
     private static final int INVENTORY_LOADER = 0;
+
+    Uri mCurrentProductUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,14 +47,15 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
-                Uri currentPetUri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, id);
+                mCurrentProductUri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, id);
 
                 Intent intent = new Intent(InventoryActivity.this, EditActivity.class);
-                intent.setData(currentPetUri);
+                intent.setData(mCurrentProductUri);
 
                 startActivity(intent);
             }
         });
+        getSupportLoaderManager().initLoader(INVENTORY_LOADER, null,this);
     }
 
     public void addNewButton (View v){
@@ -59,18 +65,75 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return null;
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.d("Test", "onCreatLoader Inventory Activity");
+        // Since the editor shows all pet attributes, define a projection that contains
+        // all columns from the pet table
+        String[] projection = {
+                InventoryEntry._ID,
+                InventoryEntry.COLUMN_PRODUCT_NAME,
+                InventoryEntry.COLUMN_PRODUCT_PRICE,
+                InventoryEntry.COLUMN_PRODUCT_REMAINDER,
+                InventoryEntry.COLUMN_PRODUCT_IMAGE
+        };
+
+        // This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,   // Parent activity context
+                mCurrentProductUri,     // Query the content URI for the current pet
+                projection,             // Columns to include in the resulting Cursor
+                null,                   // No selection clause
+                null,                   // No selection arguments
+                null);                  // Default sort order
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d("Test", "onLoadFinished Inventory Activity");
         // Update {@InventoryAdapter} with this new cursor containing updated product data
         mCursorAdapter.swapCursor(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d("Test", "onLoaderReset Inventory Activity");
         mCursorAdapter.swapCursor(null);
     }
+
+
+/*
+    @Override
+    public Loader onCreateLoader(int id, Bundle args) {
+        Log.d("Test", "onCreatLoader Inventory Activity");
+        // Since the editor shows all pet attributes, define a projection that contains
+        // all columns from the pet table
+        String[] projection = {
+                InventoryEntry._ID,
+                InventoryEntry.COLUMN_PRODUCT_NAME,
+                InventoryEntry.COLUMN_PRODUCT_PRICE,
+                InventoryEntry.COLUMN_PRODUCT_REMAINDER,
+                InventoryEntry.COLUMN_PRODUCT_IMAGE
+        };
+
+        // This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,   // Parent activity context
+                mCurrentProductUri,     // Query the content URI for the current pet
+                projection,             // Columns to include in the resulting Cursor
+                null,                   // No selection clause
+                null,                   // No selection arguments
+                null);                  // Default sort order
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d("Test", "onLoadFinished Inventory Activity");
+        // Update {@InventoryAdapter} with this new cursor containing updated product data
+        mCursorAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d("Test", "onLoaderReset Inventory Activity");
+        mCursorAdapter.swapCursor(null);
+    }
+    */
 }

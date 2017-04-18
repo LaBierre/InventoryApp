@@ -1,15 +1,17 @@
 package com.example.standard.inventoryapp;
 
-import android.app.LoaderManager;
 import android.content.ContentValues;
-import android.content.CursorLoader;
+
 import android.content.Intent;
-import android.content.Loader;
+
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -58,19 +60,6 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
     @BindView(R.id.image_product)
     ImageView mProductImage;
 
-    // Button for Add picture
-    private Button mAddPicture;
-    // Button for Take picture
-    private Button mTakePicture;
-    // Button for Submit Sale or Remainder
-    private Button submit;
-    // Button for Safe Entries
-    private Button save;
-    // Button for Order Products
-    private Button order;
-    // Button for Add new Products
-    private Button add;
-
     private String imagePath;
 
     /** Content URI for the existing product (null if it's a new product) */
@@ -104,13 +93,6 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
         ButterKnife.bind(this);
 
-//        addPicture = (Button) findViewById(R.id.add_image_button);
-//        takePicture = (Button) findViewById(R.id.take_image_button);
-//        submit = (Button) findViewById(R.id.submit_button_detail);
-//        save = (Button) findViewById(R.id.save_button_detail);
-//        order = (Button) findViewById(R.id.order_button_detail);
-//        add = (Button) findViewById(R.id.add_button_detail);
-
         Intent intent = getIntent();
         mCurrentProductUri = intent.getData();
 
@@ -120,7 +102,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
             // (It doesn't make sense to delete a pet that hasn't been created yet.)
             invalidateOptionsMenu();
         } else {
-            getLoaderManager().initLoader(EXISTING_PRODUCT_LOADER, null, this);
+            getSupportLoaderManager().initLoader(EXISTING_PRODUCT_LOADER, null,this);
             setTitle("Edit Product");
         }
 
@@ -169,7 +151,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
             if (cursor != null) {
                 cursor.moveToFirst();
             }
-            String imagePath = cursor.getString(cursor.getColumnIndex(filePath[0]));
+            imagePath = cursor.getString(cursor.getColumnIndex(filePath[0]));
 
             Log.d("Test", "Image Path: " + imagePath);
 
@@ -185,7 +167,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
             Bitmap photo = (Bitmap) data.getExtras().get("data");
 
             // CALL THIS METHOD TO GET THE ACTUAL PATH
-            String imagePath = getOriginalImagePath();
+            imagePath = getOriginalImagePath();
 
             Log.d("Test", "Image Path: " + imagePath);
 
@@ -275,10 +257,11 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
+        Log.d("Test", "onCreatLoader Edit Activity");
         // Since the editor shows all pet attributes, define a projection that contains
         // all columns from the pet table
         String[] projection = {
+                InventoryEntry._ID,
                 InventoryEntry.COLUMN_PRODUCT_NAME,
                 InventoryEntry.COLUMN_PRODUCT_PRICE,
                 InventoryEntry.COLUMN_PRODUCT_REMAINDER,
@@ -298,7 +281,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-
+        Log.d("Test", "onLoadFinished Edit Activity");
         // Proceed with moving to the first row of the cursor and reading data from it
         // (This should be the only row in the cursor)
         if (cursor.moveToFirst()){
@@ -330,6 +313,72 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d("Test", "onLoaderReset Edit Activity");
+    }
+
+
+
+/*
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.d("Test", "onCreatLoader Edit Activity");
+        // Since the editor shows all pet attributes, define a projection that contains
+        // all columns from the pet table
+        String[] projection = {
+                InventoryEntry._ID,
+                InventoryEntry.COLUMN_PRODUCT_NAME,
+                InventoryEntry.COLUMN_PRODUCT_PRICE,
+                InventoryEntry.COLUMN_PRODUCT_REMAINDER,
+                InventoryEntry.COLUMN_PRODUCT_IMAGE,
+                InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME,
+                InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE
+        };
+
+        // This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,   // Parent activity context
+                mCurrentProductUri,     // Query the content URI for the current pet
+                projection,             // Columns to include in the resulting Cursor
+                null,                   // No selection clause
+                null,                   // No selection arguments
+                null);                  // Default sort order
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        Log.d("Test", "onLoadFinished Edit Activity");
+        // Proceed with moving to the first row of the cursor and reading data from it
+        // (This should be the only row in the cursor)
+        if (cursor.moveToFirst()){
+            // Find the columns of pet attributes that we're interested in
+            int productNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_NAME);
+            int productPriceColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_PRICE);
+            int remainderColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
+            int productImageColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_IMAGE);
+            int supplierNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME);
+            int supplierPhoneColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE);
+
+            // Extract out the value from the Cursor for the given column index
+            String productName = cursor.getString(productNameColumnIndex);
+            float productPrice = cursor.getFloat(productPriceColumnIndex);
+            int remainder = cursor.getInt(remainderColumnIndex);
+            String productImage = cursor.getString(productImageColumnIndex);
+            String supplierName = cursor.getString(supplierNameColumnIndex);
+            String supplierPhone = cursor.getString(supplierPhoneColumnIndex);
+
+            // Update the views on the screen with the values from the database
+            mProductName.setText(productName);
+            mProductPrice.setText(String.valueOf(productPrice));
+            mRemainder.setText(String.valueOf(remainder));
+            mSupplierName.setText(supplierName);
+            mProductImage.setImageBitmap(BitmapFactory.decodeFile(productImage));
+            mSupplierPhone.setText(supplierPhone);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d("Test", "onLoaderReset Edit Activity");
 
     }
+    */
 }
