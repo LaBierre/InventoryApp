@@ -1,0 +1,36 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- List item TextView Linear Layout Column 1. -->
+    <style name="ListItem_Text_1">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:textColor">@color/colorText</item>
+        <item name="android:gravity">right</item>
+        <item name="android:paddingRight">10dp</item>
+    </style>
+
+    <!-- List item TextView Linear Layout Column 2. -->
+    <style name="ListItem_Text_2">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:textColor">@color/colorText</item>
+    </style>
+
+    <!-- List item TextView Linear Layout Column 2. -->
+    <style name="EditActivity_text">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/colorText</item>
+    </style>
+
+</resources>
