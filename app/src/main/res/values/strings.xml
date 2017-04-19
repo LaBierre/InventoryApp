@@ -1,3 +1,83 @@
 <resources>
     <string name="app_name">Inventory App</string>
+
+    <!-- Labels for edit menu with the options save, add new, order, reset and delete -->
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete Product</string>
+    <string name="action_reset_input">Reset Input</string>
+    <string name="action_add_new">Add new Product</string>
+    <string name="action_order">Order Supply</string>
+
+    <!-- Label for list menu with options insert dummy and delete list-->
+    <string name="action_list_insert">Insert dummy data</string>
+    <string name="action_list_delete">Delete List</string>
+
+    <!-- Dialog message when user is leaving editor but hasn't saved changes [CHAR LIMIT=NONE] -->
+    <string name="unsaved_changes_dialog_msg">
+        Your data are not complete. Do you
+        wan\'t to discard your changes and quit editing?
+    </string>
+
+    <!-- Dialog button text for the option to discard a user's changes [CHAR LIMIT=20] -->
+    <string name="discard">Discard</string>
+
+    <!-- Dialog button text for the option to keep editing the current pet [CHAR LIMIT=20] -->
+    <string name="keep_editing">Keep Editing</string>
+
+    <!-- Description Text if you start the App first time and/or the list is empty -->
+    <string name="description_text">
+        Hi People, you can click the ADD NEW PRODUCT-BUTTON for inserting a new Product or you can
+        test the look if you click \"Insert Dummy Data\" at the Settings Menu.
+    </string>
+
+    <!-- All Strings in the Edit Activity -->
+    <string name="add_title_edit_activity">Add new Product</string>
+    <string name="edit_title_edit_activity">Edit Product</string>
+    <string name="phone_appendix_edit_activity">tel:</string>
+    <string name="insert_failed_edit_activity">Inserting Product failed</string>
+    <string name="insert_succed_edit_activity">Inserting Product succeed</string>
+    <string name="update_failed_edit_activity">Updating Product failed</string>
+    <string name="update_succed_edit_activity">Updating Product succeed</string>
+    <string name="delete_failed_edit_activity">Deleting Product failed</string>
+    <string name="delete_succed_edit_activity">Deleting Product succeed</string>
+    <string name="new_order_toast">Please place a new Order!</string>
+
+    <!-- Button in Inventory-List-Layout -->
+    <string name="add_button_list_layout">Add new Product</string>
+
+    <!-- Buttons, EditText-Field and TextViews in Edit-Layout -->
+    <string name="add_image_button">Add Image</string>
+    <string name="take_image_button">Take Image</string>
+    <string name="product_name_text">Name:</string>
+    <string name="product_name_edit">Product Name</string>
+    <string name="price_text">Price[€]:</string>
+    <string name="price_edit">Product Price</string>
+    <string name="remainder_text">Remainder:</string>
+    <string name="remainder_edit">Articles left</string>
+    <string name="supplier_name_text">Supplier-Name:</string>
+    <string name="supplier_name_edit">Name</string>
+    <string name="supplier_phone_text">Supplier-Phone:</string>
+    <string name="supplier_phone_edit">Phone</string>
+    <string name="sale_edit">Sale</string>
+    <string name="add_shipment_edit">Add Shipment</string>
+    <string name="submit_button">Submit</string>
+
+    <!-- Exception Strings in InventoryProvider-Class -->
+    <string name="exception_one">Cannot query unknown URI</string>
+    <string name="exception_two">Unknown URI</string>
+    <string name="exception_three"> with match </string>
+    <string name="exception_four">Insertion is not supported for </string>
+    <string name="exception_five">Product requires a name</string>
+    <string name="exception_six">Product requires price</string>
+    <string name="exception_seven">Product requires remainder value</string>
+    <string name="exception_eight">Product requires image</string>
+    <string name="exception_nine">Failed to insert row for</string>
+    <string name="exception_ten">Deletion is not supported for</string>
+    <string name="exception_eleven">Update is not supported for</string>
+    <string name="exception_twelve">Product requires a name</string>
+    <string name="name_dummy">Schokohase</string>
+    <string name="supplier_name_dummy">Schoki GmbH</string>
+    <string name="image_path_dummy">/storage/extSdCard/Images/Osterbilder/frohe-ostern.jpg</string>
+
+
 </resources>

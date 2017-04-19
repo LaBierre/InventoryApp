@@ -1,10 +1,16 @@
 package com.example.standard.inventoryapp;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +18,7 @@ import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.standard.inventoryapp.data.InventoryContract.InventoryEntry;
 
@@ -57,7 +64,7 @@ public class InventoryCursorAdapter extends CursorAdapter {
      *                correct row.
      */
     @Override
-    public void bindView(View view, final Context context, Cursor cursor) {
+    public void bindView(View view, final Context context, final Cursor cursor) {
 
         // Find fields to populate in inflated template
         TextView name = (TextView) view.findViewById(R.id.product_name_text);
@@ -68,7 +75,7 @@ public class InventoryCursorAdapter extends CursorAdapter {
 
         Button sale = (Button) view.findViewById(R.id.sale_btn_list);
 
-        //Find the columns of pet attributes
+        //Find the columns of product attributes
         int nameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_NAME);
         int priceColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_PRICE);
         int remainderColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
@@ -80,15 +87,13 @@ public class InventoryCursorAdapter extends CursorAdapter {
         int productRemainder = cursor.getInt(remainderColumnIndex);
         String productImage = cursor.getString(imageColumnIndex);
 
-//        if (TextUtils.isEmpty(petBreed)){
-//            petBreed = "Unknown Breed!";
-//        }
-
         // Populate fields with extracted properties
         name.setText(productName);
         price.setText(String.valueOf(productPrice));
         remainder.setText(String.valueOf(productRemainder));
         image.setImageBitmap(BitmapFactory.decodeFile(productImage));
+
+        final long idCurrent = getItemId(cursor.getPosition());
 
         // That happens by clicking sale button in ListView
         sale.setOnClickListener(new View.OnClickListener() {
@@ -96,13 +101,20 @@ public class InventoryCursorAdapter extends CursorAdapter {
             public void onClick(View view) {
                 int rest = Integer.parseInt(remainder.getText().toString());
                 rest --;
+                // Warn User if remainder get smaller than 50. finish substracting if remainder == 0
+                if (rest <= 50){
+                    Toast.makeText(context, context.getString(R.string.new_order_toast), Toast.LENGTH_LONG).show();
+                    if (rest <= 0){
+                        rest = 0;
+                    }
+                }
+                Uri currentItemUri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI, idCurrent);
                 remainder.setText(String.valueOf(rest));
-
                 ContentValues values = new ContentValues();
                 values.put(InventoryEntry.COLUMN_PRODUCT_NAME, productName);
                 values.put(InventoryEntry.COLUMN_PRODUCT_PRICE, productPrice);
                 values.put(InventoryEntry.COLUMN_PRODUCT_REMAINDER, rest);
-                //int rowUpdated = context.getContentResolver()
+                long id = context.getContentResolver().update(currentItemUri,values, null, null);
             }
         });
     }

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="8dp">
+    android:padding="8dp"
+    tools:context=".EditActivity">
 
     <LinearLayout
+        android:id="@+id/linear_buttons_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center"
-        android:id="@+id/linear_buttons_image">
+        android:orientation="horizontal">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -24,36 +26,33 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="5dp"
-                android:text="Add Image" />
+                android:text="@string/add_image_button" />
 
             <Button
                 android:id="@+id/take_image_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:text="Take Image" />
+                android:text="@string/take_image_button" />
 
         </LinearLayout>
 
         <ImageView
             android:id="@+id/image_product"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_marginRight="50dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginRight="30dp"
             app:srcCompat="@mipmap/ic_launcher" />
 
     </LinearLayout>
 
 
-
-
-
     <LinearLayout
+        android:id="@+id/layout_details"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/layout_details"
         android:layout_below="@+id/linear_buttons_image"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="30dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -63,12 +62,12 @@
 
             <TextView
                 style="@style/EditActivity_text"
-                android:text="Name:" />
+                android:text="@string/product_name_text" />
 
             <EditText
-                style="@style/EditActivity_text"
                 android:id="@+id/product_name_detail"
-                android:hint="Product Name" />
+                style="@style/EditActivity_text"
+                android:hint="@string/product_name_edit" />
 
         </LinearLayout>
 
@@ -79,12 +78,12 @@
 
             <TextView
                 style="@style/EditActivity_text"
-                android:text="Price[€]:" />
+                android:text="@string/price_text" />
 
             <EditText
                 android:id="@+id/product_price_detail"
                 style="@style/EditActivity_text"
-                android:hint="Product Price"
+                android:hint="@string/price_edit"
                 android:inputType="numberDecimal" />
 
         </LinearLayout>
@@ -96,12 +95,12 @@
 
             <TextView
                 style="@style/EditActivity_text"
-                android:text="Remainder:" />
+                android:text="@string/remainder_text" />
 
             <EditText
                 android:id="@+id/product_remainder_detail"
                 style="@style/EditActivity_text"
-                android:hint="Articles left"
+                android:hint="@string/remainder_edit"
                 android:inputType="number" />
 
         </LinearLayout>
@@ -113,12 +112,12 @@
 
             <TextView
                 style="@style/EditActivity_text"
-                android:text="Supplier-Name:" />
+                android:text="@string/supplier_name_text" />
 
             <EditText
+                android:id="@+id/supplier_name_detail"
                 style="@style/EditActivity_text"
-                android:hint="Name"
-                android:id="@+id/supplier_name_detail"/>
+                android:hint="@string/supplier_name_edit" />
 
         </LinearLayout>
 
@@ -129,12 +128,12 @@
 
             <TextView
                 style="@style/EditActivity_text"
-                android:text="Supplier-Phone:" />
+                android:text="@string/supplier_phone_text" />
 
             <EditText
                 android:id="@+id/supplier_phone_detail"
                 style="@style/EditActivity_text"
-                android:hint="Phone"
+                android:hint="@string/supplier_phone_edit"
                 android:inputType="phone" />
 
         </LinearLayout>
@@ -142,62 +141,34 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp">
+            android:layout_marginTop="50dp"
+            android:orientation="horizontal">
 
             <EditText
+                android:id="@+id/product_sale_detail"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Sale"
-                android:id="@+id/product_sale_detail"/>
+                android:hint="@string/sale_edit"
+                android:inputType="number"/>
 
             <EditText
+                android:id="@+id/product_shipment_detail"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Add Shipment"
-                android:id="@+id/product_shipment_detail"/>
+                android:hint="@string/add_shipment_edit"
+                android:inputType="number"/>
 
             <Button
                 android:id="@+id/submit_button_detail"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:text="Submit" />
+                android:text="@string/submit_button" />
 
         </LinearLayout>
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_below="@+id/layout_details"
-        android:layout_alignParentBottom="true"
-        android:gravity="center">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/add_button_detail"
-            android:text="Add New"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="16dp"
-            android:layout_marginLeft="16dp"
-            android:id="@+id/save_button_detail"
-            android:text="Save"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/order_button_detail"
-            android:text="Order"/>
-
-
-    </LinearLayout>
 
 </RelativeLayout>

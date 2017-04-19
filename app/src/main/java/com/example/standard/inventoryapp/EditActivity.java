@@ -2,6 +2,7 @@ package com.example.standard.inventoryapp;
 
 import android.content.ContentValues;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.database.Cursor;
@@ -10,11 +11,17 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.app.NavUtils;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -28,6 +35,9 @@ import butterknife.BindView;
 import butterknife.BindViews;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+
+import static android.R.attr.data;
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 
 
 public class EditActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -79,7 +89,6 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
-            Log.i("Test", "something touched");
             mProductHasChanged = true;
             return false;
         }
@@ -97,13 +106,13 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
         mCurrentProductUri = intent.getData();
 
         if (mCurrentProductUri == null) {
-            setTitle("Add new Product");
+            setTitle(getString(R.string.add_title_edit_activity));
             // Invalidate the options menu, so the "Delete" menu option can be hidden.
             // (It doesn't make sense to delete a pet that hasn't been created yet.)
             invalidateOptionsMenu();
         } else {
             getSupportLoaderManager().initLoader(EXISTING_PRODUCT_LOADER, null,this);
-            setTitle("Edit Product");
+            setTitle(getString(R.string.edit_title_edit_activity));
         }
 
         mProductName.setOnTouchListener(mTouchListener);
@@ -114,6 +123,136 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
         mSale.setOnTouchListener(mTouchListener);
         mShipment.setOnTouchListener(mTouchListener);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // If this is a new pet, hide the "Delete" menu item.
+        if (mCurrentProductUri == null) {
+            MenuItem menuItem = menu.findItem(R.id.action_delete);
+            menuItem.setVisible(false);
+            MenuItem addItem = menu.findItem(R.id.action_add);
+            addItem.setVisible(false);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.menu_edit, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()){
+            case R.id.action_save:
+                if (TextUtils.isEmpty(mProductName.getText().toString().trim()) ||
+                        TextUtils.isEmpty(mProductPrice.getText().toString().trim()) ||
+                        TextUtils.isEmpty(mRemainder.getText().toString().trim()) ||
+                        TextUtils.isEmpty(mSupplierName.getText().toString().trim()) ||
+                        TextUtils.isEmpty(mSupplierPhone.getText().toString().trim()) ||
+                        mProductImage.getDrawable() == null)
+                {
+                    dialogInterface();
+                }else {
+                    mProductHasChanged = false;
+                    saveData();
+                    finish();
+                }
+
+                return true;
+            case R.id.action_add:
+                mCurrentProductUri = null;
+                Intent intent = new Intent(this, EditActivity.class);
+                intent.setData(mCurrentProductUri);
+                startActivity(intent);
+                return true;
+            case R.id.action_delete:
+                deleteData();
+                NavUtils.navigateUpFromSameTask(EditActivity.this);
+                return true;
+            case R.id.action_order:
+                String number = mSupplierPhone.getText().toString().trim();
+                String uri = getString(R.string.phone_appendix_edit_activity) + number;
+                Intent order = new Intent(Intent.ACTION_DIAL);
+                order.setData(Uri.parse(uri));
+                startActivity(order);
+                return true;
+            case R.id.action_reset:
+                mProductName.setText("");
+                mProductPrice.setText("");
+                mRemainder.setText("");
+                mSupplierName.setText("");
+                mSupplierPhone.setText("");
+                mProductImage.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_done, null));
+                return true;
+            case android.R.id.home:
+                // If the pet hasn't changed, continue with navigating up to parent activity
+                // which is the {@link CatalogActivity}.
+                if (!mProductHasChanged && imagePath == null) {
+                    NavUtils.navigateUpFromSameTask(EditActivity.this);
+                    return true;
+                }
+                // Otherwise if there are unsaved changes, setup a dialog to warn the user.
+                // Create a click listener to handle the user confirming that
+                // changes should be discarded.
+                dialogInterface();
+
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        // If the pet hasn't changed, continue with handling back button press
+        if (!mProductHasChanged && imagePath == null) {
+            super.onBackPressed();
+            return;
+        }
+
+        // Otherwise if there are unsaved changes, setup a dialog to warn the user.
+        // Create a click listener to handle the user confirming that changes should be discarded.
+        dialogInterface();
+    }
+
+    private void dialogInterface(){
+        DialogInterface.OnClickListener discardButtonClickListener =
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // User clicked "Discard" button, close the current activity.
+                        finish();
+                    }
+                };
+
+        // Show dialog that there are unsaved changes
+        showUnsavedChangesDialog(discardButtonClickListener);
+    }
+
+    private void showUnsavedChangesDialog(
+            DialogInterface.OnClickListener discardButtonClickListener) {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the positive and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.unsaved_changes_dialog_msg);
+        builder.setPositiveButton(R.string.discard, discardButtonClickListener);
+        builder.setNegativeButton(R.string.keep_editing, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Keep editing" button, so dismiss the dialog
+                // and continue editing the pet.
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
     @OnClick(R.id.add_image_button) void addImageButton(){
@@ -132,8 +271,34 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
         startActivityForResult(i, TAKE_IMAGE_RESULTS);
     }
 
-    @OnClick(R.id.save_button_detail) void saveButton(){
-        saveData();
+    @OnClick(R.id.submit_button_detail) void submitButton(){
+        int sale = 0;
+        int shipment = 0;
+        int remainder;
+        // Check if remainder == null, because remainder-textfield is empty
+        if (TextUtils.isEmpty(mRemainder.getText().toString().trim())){
+            remainder = 0;
+        } else {
+            remainder = Integer.parseInt(mRemainder.getText().toString().trim());
+        }
+        // Substract the Sale-Text-Field-Content from remainder
+        if (!TextUtils.isEmpty(mSale.getText().toString().trim())){
+            sale = Integer.parseInt(mSale.getText().toString().trim());
+            remainder -= sale;
+        }
+        // Add the Shipment-Text-Field-Content to remainder
+        if (!TextUtils.isEmpty(mShipment.getText().toString().trim())){
+            shipment = Integer.parseInt(mShipment.getText().toString().trim());
+            remainder += shipment;
+        }
+        // Warn User if remainder get smaller than 50. finish substracting if remainder == 0
+        if (remainder <= 50){
+            Toast.makeText(EditActivity.this, getString(R.string.new_order_toast), Toast.LENGTH_LONG).show();
+            if (remainder <= 0){
+                remainder = 0;
+            }
+        }
+        mRemainder.setText(String.valueOf(remainder));
     }
 
     @Override
@@ -147,29 +312,23 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
             Uri pickedImage = data.getData();
             // Let's read picked image path using content resolver
             String[] filePath = { MediaStore.Images.Media.DATA };
+
             Cursor cursor = getContentResolver().query(pickedImage, filePath, null, null, null);
             if (cursor != null) {
                 cursor.moveToFirst();
             }
             imagePath = cursor.getString(cursor.getColumnIndex(filePath[0]));
 
-            Log.d("Test", "Image Path: " + imagePath);
 
-            //Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
             // Now we need to set the GUI ImageView data with data read from the picked file.
-            //image.setImageBitmap(bitmap);
             mProductImage.setImageBitmap(BitmapFactory.decodeFile(imagePath));
 
             // At the end remember to close the cursor or you will end with the RuntimeException!
             cursor.close();
         }
         if (requestCode == TAKE_IMAGE_RESULTS && resultCode == RESULT_OK && data != null) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-
             // CALL THIS METHOD TO GET THE ACTUAL PATH
             imagePath = getOriginalImagePath();
-
-            Log.d("Test", "Image Path: " + imagePath);
 
             mProductImage.setImageBitmap(BitmapFactory.decodeFile(imagePath));
         }
@@ -207,7 +366,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
         int remainder = Integer.parseInt(mRemainder.getText().toString().trim());
         String supplierName = mSupplierName.getText().toString().trim();
         int supplierPhone = Integer.parseInt(mSupplierPhone.getText().toString().trim());
-        //Todo: get String path of image
+
         String productImage = imagePath;
 
         values.put(InventoryEntry.COLUMN_PRODUCT_NAME, productName);
@@ -215,7 +374,14 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
         values.put(InventoryEntry.COLUMN_PRODUCT_REMAINDER, remainder);
         values.put(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME, supplierName);
         values.put(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE, supplierPhone);
-        values.put(InventoryEntry.COLUMN_PRODUCT_IMAGE, productImage);
+        /*
+        * In case of Edit Mode the String productImage could be null if you don't want to
+        * update the image. Therefore i have to check this
+        * */
+        if (productImage != null){
+            values.put(InventoryEntry.COLUMN_PRODUCT_IMAGE, productImage);
+        }
+
 
         // Check if EditActivity is called from List Item or Add Button
         if (mCurrentProductUri == null){
@@ -224,20 +390,20 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
             if (newUri == null) {
                 // If the new content URI is null, then there was an error with insertion.
-                Toast.makeText(this, "Inserting Product failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.insert_failed_edit_activity), Toast.LENGTH_SHORT).show();
             } else {
                 // Otherwise, the insertion was successful and we can display a toast.
-                Toast.makeText(this, "Inserting Product succeed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.insert_succed_edit_activity), Toast.LENGTH_SHORT).show();
             }
         } else {
             int rowsAffected = getContentResolver().update(mCurrentProductUri,values, null, null);
 
             if (rowsAffected == 0) {
                 // If the new content URI is null, then there was an error with insertion.
-                Toast.makeText(this, "Updating Product failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.update_failed_edit_activity), Toast.LENGTH_SHORT).show();
             } else {
                 // Otherwise, the insertion was successful and we can display a toast.
-                Toast.makeText(this, "Updating Product succeed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.update_succed_edit_activity), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -248,16 +414,15 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
         if (rowsDeleted == 0) {
             // If the new content URI is null, then there was an error with insertion.
-            Toast.makeText(this, "Deleting Product failed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.delete_failed_edit_activity), Toast.LENGTH_SHORT).show();
         } else {
             // Otherwise, the insertion was successful and we can display a toast.
-            Toast.makeText(this, "Deleting Product succeed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.delete_succed_edit_activity), Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.d("Test", "onCreatLoader Edit Activity");
         // Since the editor shows all pet attributes, define a projection that contains
         // all columns from the pet table
         String[] projection = {
@@ -281,7 +446,6 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        Log.d("Test", "onLoadFinished Edit Activity");
         // Proceed with moving to the first row of the cursor and reading data from it
         // (This should be the only row in the cursor)
         if (cursor.moveToFirst()){
@@ -313,72 +477,12 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        Log.d("Test", "onLoaderReset Edit Activity");
+        mProductName.setText("");
+        mProductPrice.setText("");
+        mRemainder.setText("");
+        mSupplierName.setText("");
+        mSupplierPhone.setText("");
+        mProductImage.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_done, null));
     }
 
-
-
-/*
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.d("Test", "onCreatLoader Edit Activity");
-        // Since the editor shows all pet attributes, define a projection that contains
-        // all columns from the pet table
-        String[] projection = {
-                InventoryEntry._ID,
-                InventoryEntry.COLUMN_PRODUCT_NAME,
-                InventoryEntry.COLUMN_PRODUCT_PRICE,
-                InventoryEntry.COLUMN_PRODUCT_REMAINDER,
-                InventoryEntry.COLUMN_PRODUCT_IMAGE,
-                InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME,
-                InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE
-        };
-
-        // This loader will execute the ContentProvider's query method on a background thread
-        return new CursorLoader(this,   // Parent activity context
-                mCurrentProductUri,     // Query the content URI for the current pet
-                projection,             // Columns to include in the resulting Cursor
-                null,                   // No selection clause
-                null,                   // No selection arguments
-                null);                  // Default sort order
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        Log.d("Test", "onLoadFinished Edit Activity");
-        // Proceed with moving to the first row of the cursor and reading data from it
-        // (This should be the only row in the cursor)
-        if (cursor.moveToFirst()){
-            // Find the columns of pet attributes that we're interested in
-            int productNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_NAME);
-            int productPriceColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_PRICE);
-            int remainderColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
-            int productImageColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_IMAGE);
-            int supplierNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME);
-            int supplierPhoneColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE);
-
-            // Extract out the value from the Cursor for the given column index
-            String productName = cursor.getString(productNameColumnIndex);
-            float productPrice = cursor.getFloat(productPriceColumnIndex);
-            int remainder = cursor.getInt(remainderColumnIndex);
-            String productImage = cursor.getString(productImageColumnIndex);
-            String supplierName = cursor.getString(supplierNameColumnIndex);
-            String supplierPhone = cursor.getString(supplierPhoneColumnIndex);
-
-            // Update the views on the screen with the values from the database
-            mProductName.setText(productName);
-            mProductPrice.setText(String.valueOf(productPrice));
-            mRemainder.setText(String.valueOf(remainder));
-            mSupplierName.setText(supplierName);
-            mProductImage.setImageBitmap(BitmapFactory.decodeFile(productImage));
-            mSupplierPhone.setText(supplierPhone);
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        Log.d("Test", "onLoaderReset Edit Activity");
-
-    }
-    */
 }

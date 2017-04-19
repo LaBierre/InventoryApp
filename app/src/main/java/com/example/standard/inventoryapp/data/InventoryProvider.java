@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
+import com.example.standard.inventoryapp.R;
 import com.example.standard.inventoryapp.data.InventoryContract.InventoryEntry;
 
 import static android.R.attr.id;
@@ -104,7 +105,7 @@ public class InventoryProvider extends ContentProvider {
                         null, null, sortOrder);
                 break;
             default:
-                throw new IllegalArgumentException("Cannot query unknown URI " + uri);
+                throw new IllegalArgumentException(getContext().getString(R.string.exception_one) + uri);
         }
 
         // Set notification URI on the Cursor
@@ -125,7 +126,8 @@ public class InventoryProvider extends ContentProvider {
             case PRODUCT_ID:
                 return InventoryEntry.CONTENT_ITEM_TYPE;
             default:
-                throw new IllegalStateException("Unknown URI " + uri + " with match " + match);
+                throw new IllegalStateException(getContext().getString(R.string.exception_two) + uri
+                        + getContext().getString(R.string.exception_three) + match);
         }
     }
 
@@ -137,7 +139,7 @@ public class InventoryProvider extends ContentProvider {
             case PRODUCTS:
                 return insertProduct(uri, contentValues);
             default:
-                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+                throw new IllegalArgumentException(getContext().getString(R.string.exception_four) + uri);
         }
     }
 
@@ -150,22 +152,22 @@ public class InventoryProvider extends ContentProvider {
         // Check that the name is not null
         String name = values.getAsString(InventoryEntry.COLUMN_PRODUCT_NAME);
         if (name == null) {
-            throw new IllegalArgumentException("Product requires a name");
+            throw new IllegalArgumentException(getContext().getString(R.string.exception_four));
         }
         // Check that the price ist not null
         Float price = values.getAsFloat(InventoryEntry.COLUMN_PRODUCT_PRICE);
         if (price == null) {
-            throw new IllegalArgumentException("Product requires price");
+            throw new IllegalArgumentException(getContext().getString(R.string.exception_six));
         }
         // Check that the remainder is not null
         Integer remainder = values.getAsInteger(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
         if (remainder == null){
-            throw new IllegalArgumentException("Product requires remainder value");
+            throw new IllegalArgumentException(getContext().getString(R.string.exception_seven));
         }
         // Check that the image is not null
         String image = values.getAsString(InventoryEntry.COLUMN_PRODUCT_IMAGE);
         if (image == null){
-            throw new IllegalArgumentException("Product requires image");
+            throw new IllegalArgumentException(getContext().getString(R.string.exception_eight));
         }
 
         // Get writeable database
@@ -175,7 +177,7 @@ public class InventoryProvider extends ContentProvider {
         long id = database.insert(InventoryEntry.TABLE_NAME, null, values);
         // If the ID is -1, then the insertion failed. Log an error and return null.
         if (id == -1) {
-            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            Log.e(LOG_TAG, getContext().getString(R.string.exception_nine) + uri);
             return null;
         }
 
@@ -213,7 +215,7 @@ public class InventoryProvider extends ContentProvider {
 
                 return rowsDeleted;
             default:
-                throw new IllegalArgumentException("Deletion is not supported for " + uri);
+                throw new IllegalArgumentException(getContext().getString(R.string.exception_ten) + uri);
         }
     }
 
@@ -232,7 +234,7 @@ public class InventoryProvider extends ContentProvider {
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
                 return updateProduct(uri, contentValues, selection, selectionArgs);
             default:
-                throw new IllegalArgumentException("Update is not supported for " + uri);
+                throw new IllegalArgumentException(getContext().getString(R.string.exception_eleven) + uri);
         }
     }
 
@@ -242,7 +244,7 @@ public class InventoryProvider extends ContentProvider {
             // Check that the name is not null
             String name = values.getAsString(InventoryEntry.COLUMN_PRODUCT_NAME);
             if (name == null) {
-                throw new IllegalArgumentException("Product requires a name");
+                throw new IllegalArgumentException(getContext().getString(R.string.exception_twelve));
             }
         }
 
