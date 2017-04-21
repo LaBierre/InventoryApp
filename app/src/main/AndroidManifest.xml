@@ -3,9 +3,9 @@
     package="com.example.standard.inventoryapp">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.FLASHLIGHT" />
-    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera" android:required="true"/>
 
     <application
         android:allowBackup="true"
@@ -22,8 +22,7 @@
         </activity>
         <activity android:name=".EditActivity"
             android:parentActivityName=".InventoryActivity"
-            android:screenOrientation="portrait"
-            android:configChanges="keyboardHidden|orientation">
+            android:windowSoftInputMode="stateHidden">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

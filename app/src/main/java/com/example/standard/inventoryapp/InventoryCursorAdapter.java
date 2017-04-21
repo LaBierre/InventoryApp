@@ -5,11 +5,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -81,17 +83,40 @@ public class InventoryCursorAdapter extends CursorAdapter {
         int remainderColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
         int imageColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_IMAGE);
 
+        // Todo: Rename all String productImage to productImagePath
         // Extract properties from cursor
         final String productName = cursor.getString(nameColumnIndex);
         final float productPrice = cursor.getFloat(priceColumnIndex);
         int productRemainder = cursor.getInt(remainderColumnIndex);
-        String productImage = cursor.getString(imageColumnIndex);
+        String productImageText = cursor.getString(imageColumnIndex);
+
+        Bitmap bitmap = null;
+
+        try {
+            byte [] encodeByte = Base64.decode(productImageText, Base64.DEFAULT);
+            bitmap = BitmapFactory.decodeByteArray(encodeByte,0, encodeByte.length);
+        } catch (Exception e){
+            e.getMessage();
+        }
+        image.setImageBitmap(bitmap);
+
+        //Log.d("Test", "CursorAdapter Imagepath: " + productImageText);
+
+        // If the user clicked "Insert Dummy Data" in the Options Menu showed in the Inventory
+        // Activity the cursor contains an emyty String "productImagePath" and the dummy image from
+        // drawable folder will be loaded in the Image View "image". In other case the saved
+        // productImagePath will be decoded and set as Bitmap in the Image View "image".
+//        if (TextUtils.isEmpty(productImagePath)){
+//            image.setImageResource(R.drawable.frohe_ostern);
+//        } else {
+//            image.setImageBitmap(BitmapFactory.decodeFile(productImagePath));
+//        }
 
         // Populate fields with extracted properties
         name.setText(productName);
         price.setText(String.valueOf(productPrice));
         remainder.setText(String.valueOf(productRemainder));
-        image.setImageBitmap(BitmapFactory.decodeFile(productImage));
+
 
         final long idCurrent = getItemId(cursor.getPosition());
 

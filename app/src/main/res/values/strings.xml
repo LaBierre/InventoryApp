@@ -1,13 +1,6 @@
 <resources>
     <string name="app_name">Inventory App</string>
 
-    <!-- Labels for edit menu with the options save, add new, order, reset and delete -->
-    <string name="action_save">Save</string>
-    <string name="action_delete">Delete Product</string>
-    <string name="action_reset_input">Reset Input</string>
-    <string name="action_add_new">Add new Product</string>
-    <string name="action_order">Order Supply</string>
-
     <!-- Label for list menu with options insert dummy and delete list-->
     <string name="action_list_insert">Insert dummy data</string>
     <string name="action_list_delete">Delete List</string>
@@ -58,8 +51,8 @@
     <string name="supplier_name_edit">Name</string>
     <string name="supplier_phone_text">Supplier-Phone:</string>
     <string name="supplier_phone_edit">Phone</string>
-    <string name="sale_edit">Sale</string>
-    <string name="add_shipment_edit">Add Shipment</string>
+    <string name="sale_edit">Enter Sale</string>
+    <string name="add_shipment_edit">Enter Supply</string>
     <string name="submit_button">Submit</string>
 
     <!-- Exception Strings in InventoryProvider-Class -->
@@ -78,6 +71,7 @@
     <string name="name_dummy">Schokohase</string>
     <string name="supplier_name_dummy">Schoki GmbH</string>
     <string name="image_path_dummy">/storage/extSdCard/Images/Osterbilder/frohe-ostern.jpg</string>
-
+    <string name="sale_to_big_toast">Your remainder is smaller than the sales volume. Please contact
+        your Supplier and take an order.</string>
 
 </resources>

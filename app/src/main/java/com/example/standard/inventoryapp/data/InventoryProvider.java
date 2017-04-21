@@ -8,6 +8,8 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.standard.inventoryapp.R;
@@ -64,9 +66,10 @@ public class InventoryProvider extends ContentProvider {
         return true;
     }
 
+    @Nullable
     @Override
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-                        String sortOrder) {
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
+                        @Nullable String[] selectionArgs, @Nullable String sortOrder) {
         // Get readable database
         SQLiteDatabase database = mDbHelper.getReadableDatabase();
 
@@ -111,14 +114,15 @@ public class InventoryProvider extends ContentProvider {
         // Set notification URI on the Cursor
         // so we know what content URI the Cursor was created for
         // If the data at this URI changes, then we know we need to update the Cursor
-        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        cursor.setNotificationUri(getContext().getApplicationContext().getContentResolver(), uri);
 
         // Return the cursor
         return cursor;
     }
 
+    @Nullable
     @Override
-    public String getType(Uri uri) {
+    public String getType(@NonNull Uri uri) {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case PRODUCTS:
@@ -131,13 +135,14 @@ public class InventoryProvider extends ContentProvider {
         }
     }
 
+    @Nullable
     @Override
-    public Uri insert(Uri uri, ContentValues contentValues) {
+    public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
 
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case PRODUCTS:
-                return insertProduct(uri, contentValues);
+                return insertProduct(uri, values);
             default:
                 throw new IllegalArgumentException(getContext().getString(R.string.exception_four) + uri);
         }
@@ -189,7 +194,7 @@ public class InventoryProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
+    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs)  {
         // Get writeable database
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
@@ -220,19 +225,19 @@ public class InventoryProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+    public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
 
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case PRODUCTS:
-                return updateProduct(uri, contentValues, selection, selectionArgs);
+                return updateProduct(uri, values, selection, selectionArgs);
             case PRODUCT_ID:
                 // For the PET_ID code, extract out the ID from the URI,
                 // so we know which row to update. Selection will be "_id=?" and selection
                 // arguments will be a String array containing the actual ID.
                 selection = InventoryEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
-                return updateProduct(uri, contentValues, selection, selectionArgs);
+                return updateProduct(uri, values, selection, selectionArgs);
             default:
                 throw new IllegalArgumentException(getContext().getString(R.string.exception_eleven) + uri);
         }
