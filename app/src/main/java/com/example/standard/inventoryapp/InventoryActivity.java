@@ -48,12 +48,14 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
 
         Log.d("Test", "Adapter1 = " +mCursorAdapter);
 
-        // Find and set empty view on the ListView, so that it only shows when the list has 0 items.
-        LinearLayout emptyView = (LinearLayout) findViewById(R.id.empty_layout);
-        inventoryList.setEmptyView(emptyView);
+
 
         mCursorAdapter = new InventoryCursorAdapter(this, null);
         inventoryList.setAdapter(mCursorAdapter);
+
+        // Find and set empty view on the ListView, so that it only shows when the list has 0 items.
+        LinearLayout emptyView = (LinearLayout) findViewById(R.id.empty_layout);
+        inventoryList.setEmptyView(emptyView);
 
         Log.d("Test", "Adapter2 = " +mCursorAdapter);
 
@@ -173,6 +175,7 @@ public class InventoryActivity extends AppCompatActivity implements LoaderManage
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        data.moveToFirst();
         // Update {@InventoryAdapter} with this new cursor containing updated product data
         Log.d("Test", "onLoadFinished Cursor = " + data);
         mCursorAdapter.swapCursor(data);

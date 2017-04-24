@@ -8,14 +8,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.ExifInterface;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
-import android.os.PersistableBundle;
 import android.provider.MediaStore;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.CursorLoader;
@@ -27,28 +23,23 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.standard.inventoryapp.data.InventoryContract.InventoryEntry;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import butterknife.BindView;
-import butterknife.BindViews;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-import static android.R.attr.bitmap;
-import static android.R.attr.data;
-import static android.R.attr.order;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 
 
@@ -64,6 +55,8 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
     @BindView(R.id.product_shipment_detail) protected EditText mShipment;
     @BindView(R.id.supplier_name_detail) protected EditText mSupplierName;
     @BindView(R.id.supplier_phone_detail) protected EditText mSupplierPhone;
+
+    @BindView(R.id.placeholder_image) protected TextView placeholderImage;
 
     @BindView(R.id.image_product) protected ImageView mProductImage;
 
@@ -100,6 +93,8 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
     Uri mUri;
 
+    Bitmap bitmap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,14 +102,6 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
         ButterKnife.bind(this);
 
-        if (savedInstanceState != null){
-
-            mUri = savedInstanceState.getParcelable(IMAGE_RESTORE);
-            mProductImage.setImageURI(mUri);
-
-            Log.d("Test", "OnCreate Imagepath: " + imagePath);
-            Log.d("Test", "OnCreate Uri: " + mUri);
-        }
 
         Intent intent = getIntent();
         mCurrentProductUri = intent.getData();
@@ -124,10 +111,14 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
             // Todo Delete Button gone machen
             mDeleteButton.setVisibility(View.GONE);
             mAddProductButton.setVisibility(View.GONE);
+            placeholderImage.setVisibility(View.VISIBLE);
+            mProductImage.setVisibility(View.GONE);
             invalidateOptionsMenu();
         } else {
             getSupportLoaderManager().initLoader(EXISTING_PRODUCT_LOADER, null,this);
             setTitle(getString(R.string.edit_title_edit_activity));
+            placeholderImage.setVisibility(View.GONE);
+            mProductImage.setVisibility(View.VISIBLE);
         }
 
         Log.d("Test", "OnCreate2 Uri: " + mCurrentProductUri);
@@ -145,36 +136,35 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
 
-        // Save UI state changes to the savedInstanceState.
-        // This bundle will be passed to onCreate if the process is
-        // killed and restarted.
-        //Log.d("Test", "Instance mUrl: " + mUri);
-
-        //savedInstanceState.putString("ImagePathString", imagePath);
-
-        if (mUri != null){
-            savedInstanceState.putParcelable(IMAGE_RESTORE, mUri);
+        try {
+            BitmapDrawable drawable = (BitmapDrawable) mProductImage.getDrawable();
+            bitmap = drawable.getBitmap();
+            Log.d("Test", "savedInstance");
+            savedInstanceState.putParcelable(IMAGE_RESTORE, bitmap);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        // etc.
-
         super.onSaveInstanceState(savedInstanceState);
     }
 
-//onRestoreInstanceState
 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
 
+        try {
+            bitmap = savedInstanceState.getParcelable(IMAGE_RESTORE);
+            Log.d("Test", "RestoreInstance");
+            mProductImage.setVisibility(View.VISIBLE);
+            placeholderImage.setVisibility(View.GONE);
+            mProductImage.setImageBitmap(bitmap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         //Log.d("Test", "onRestore: mUrl = " + mUri);
         super.onRestoreInstanceState(savedInstanceState);
 
-        // Restore UI state from the savedInstanceState.
-        // This bundle has also been passed to onCreate.
 
-        //imagePath = savedInstanceState.getString("ImagePathString");
-
-        savedInstanceState.getParcelable(IMAGE_RESTORE);
     }
 
 
@@ -250,6 +240,8 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
         // Start new activity with the LOAD_IMAGE_RESULTS to handle back the results when image is picked from the Image Gallery.
         startActivityForResult(intent, LOAD_IMAGE_RESULTS);
+        placeholderImage.setVisibility(View.GONE);
+        mProductImage.setVisibility(View.VISIBLE);
         //------------------------------------------------------------------------------------------
     }
 
@@ -264,6 +256,8 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
         // Start new activity with the LOAD_IMAGE_RESULTS to handle back the results when image is
         // picked from the Image Gallery.
         startActivityForResult(i, TAKE_IMAGE_RESULTS);
+        placeholderImage.setVisibility(View.GONE);
+        mProductImage.setVisibility(View.VISIBLE);
         }
     //----------------------------------------------------------------------------------------------
 
@@ -297,6 +291,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }
         mRemainder.setText(String.valueOf(remainder));
+        mSale.setText("");
     }
     //----------------------------------------------------------------------------------------------
 
@@ -320,7 +315,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
         }
         mRemainder.setText(String.valueOf(remainder));
 
-        mShipment.setText("0");
+        mShipment.setText("");
     }
 
     /*
@@ -328,24 +323,97 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
     *  database and displayed in the List Screen
     */
     @OnClick(R.id.save_button) void saveButton(){
-        if (TextUtils.isEmpty(mProductName.getText().toString().trim())          //-]
-                || TextUtils.isEmpty(mProductPrice.getText().toString().trim())  //-
-                || TextUtils.isEmpty(mRemainder.getText().toString().trim())     //----> Minimum one of them
-                || TextUtils.isEmpty(mSupplierName.getText().toString().trim())  //-
-                || TextUtils.isEmpty(mSupplierPhone.getText().toString().trim()) //-]
-                && (mCurrentProductUri == null || mUri == null)                  //-and one of them in Brackets
-                || (mCurrentProductUri == null && mUri == null)                  //-or both of them in Brackets
-                )
-        {
-            dialogInterface();
-        }else {
-            mProductHasChanged = false;
+
             saveData();
-            //finish();
-            NavUtils.navigateUpFromSameTask(EditActivity.this);
-        }
+
     }
     //----------------------------------------------------------------------------------------------
+
+    /*
+   *  Inserts values of a new Product in the database and updates changes from existing Products---
+   */
+    private void saveData (){
+        // Create a new map of values, where column names are the keys
+        ContentValues values = new ContentValues();
+
+        // Content of Textfiels saved in local Variables--------------------------------------------
+        String productName = mProductName.getText().toString().trim();
+
+        String priceString = mProductPrice.getText().toString().trim();
+        double productPrice = 0.0;
+        if (!TextUtils.isEmpty(priceString)){
+            productPrice = Double.parseDouble(priceString);
+        }
+        String remainderString = mRemainder.getText().toString().trim();
+        int remainder = 0;
+        if (!TextUtils.isEmpty(remainderString)){
+            remainder = Integer.parseInt(remainderString);
+        }
+        String supplierName = mSupplierName.getText().toString().trim();
+        String phoneString = mSupplierPhone.getText().toString().trim();
+        int supplierPhone = 0;
+        if (!TextUtils.isEmpty(phoneString)){
+            supplierPhone = Integer.parseInt(phoneString);
+        }
+        //------------------------------------------------------------------------------------------
+
+        /*
+        *  Transform the Drawable from the Image View in a Base64 Text Format and the define--------
+        *  the Produkt Image Value
+        */
+        imgTextForDb = "";
+        try {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) mProductImage.getDrawable();
+            Bitmap image = bitmapDrawable.getBitmap();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            image.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            byte [] b = baos.toByteArray();
+            imgTextForDb = Base64.encodeToString(b, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //------------------------------------------------------------------------------------------
+        values.put(InventoryEntry.COLUMN_PRODUCT_IMAGE, imgTextForDb);
+        values.put(InventoryEntry.COLUMN_PRODUCT_NAME, productName);
+        values.put(InventoryEntry.COLUMN_PRODUCT_PRICE, productPrice);
+        values.put(InventoryEntry.COLUMN_PRODUCT_REMAINDER, remainder);
+        values.put(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME, supplierName);
+        values.put(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE, supplierPhone);
+
+        // Insert new Product-----------------------------------------------------------------------
+        if (mCurrentProductUri == null){
+            Uri newUri = getContentResolver().insert(InventoryEntry.CONTENT_URI, values);
+            if (newUri == null) {
+                // If the new content URI is null, then there was an error with insertion.
+                Toast.makeText(this, getString(R.string.insert_failed_edit_activity),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                // Otherwise, the insertion was successful and we can display a toast.
+                Toast.makeText(this, getString(R.string.insert_succed_edit_activity),
+                        Toast.LENGTH_SHORT).show();
+                Log.d("Test", "Speicher erfolgreich");
+                NavUtils.navigateUpFromSameTask(EditActivity.this);
+            }
+        }
+        //------------------------------------------------------------------------------------------
+
+        // Update existing Product------------------------------------------------------------------
+        else {
+            int rowsAffected = getContentResolver().update(mCurrentProductUri,values, null, null);
+            if (rowsAffected == 0) {
+                // If the new content URI is null, then there was an error with insertion.
+                Toast.makeText(this, getString(R.string.update_failed_edit_activity),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                // Otherwise, the insertion was successful and we can display a toast.
+                Toast.makeText(this, getString(R.string.update_succed_edit_activity),
+                        Toast.LENGTH_SHORT).show();
+
+                NavUtils.navigateUpFromSameTask(EditActivity.this);
+            }
+        }
+        //------------------------------------------------------------------------------------------
+    }
 
     /*
     *  Clicking this Button within Detailsreen one Product is deleted from Database-----------------
@@ -457,95 +525,17 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
         }
         if (requestCode == TAKE_IMAGE_RESULTS && resultCode == RESULT_OK && data != null) {
             // CALL THIS METHOD TO GET THE ACTUAL PATH
-            imagePath = getOriginalImagePath();
 
-            // Let's read picked image data - its URI
-            Uri pickedImage = data.getData();
-
-            // übergeben an mUri für savedInstance
-            mUri = pickedImage;
-
+            Log.d("Test", "OnActiResult Uri: " + mUri);
             Bitmap photo = (Bitmap) data.getExtras().get("data");
 
-            mProductImage.setImageBitmap(BitmapFactory.decodeFile(imagePath));
+            //mProductImage.setImageBitmap(BitmapFactory.decodeFile(imagePath));
+            mProductImage.setImageBitmap(photo);
 
             //mProductImage.setImageBitmap(photo);
         }
     }
-    public String getOriginalImagePath() {
-        String[] projection = { MediaStore.Images.Media.DATA };
-
-        Cursor cursor = getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection, null, null, null
-        );
-
-        int column_index_data = cursor
-                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToLast();
-
-        return cursor.getString(column_index_data);
-    }
     //----------------------------------------------------------------------------------------------
-
-    /*
-    *  Inserts values of a new Product in the database and updates changes from existing Products---
-    */
-    private void saveData (){
-        // Create a new map of values, where column names are the keys
-        ContentValues values = new ContentValues();
-
-        // Content of Textfiels saved in local Variables
-        String productName = mProductName.getText().toString().trim();
-        float productPrice = Float.parseFloat(mProductPrice.getText().toString().trim());
-        int remainder = Integer.parseInt(mRemainder.getText().toString().trim());
-        String supplierName = mSupplierName.getText().toString().trim();
-        int supplierPhone = Integer.parseInt(mSupplierPhone.getText().toString().trim());
-
-        /*
-        *  Transform the Drawable from the Image View in a Base64 Text Format and the define
-        *  the Produkt Image Value
-        */
-        BitmapDrawable bitmapDrawable = (BitmapDrawable) mProductImage.getDrawable();
-        Bitmap image = bitmapDrawable.getBitmap();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        byte [] b = baos.toByteArray();
-        imgTextForDb = Base64.encodeToString(b, Base64.DEFAULT);
-
-        values.put(InventoryEntry.COLUMN_PRODUCT_IMAGE, imgTextForDb);
-
-        values.put(InventoryEntry.COLUMN_PRODUCT_NAME, productName);
-        values.put(InventoryEntry.COLUMN_PRODUCT_PRICE, productPrice);
-        values.put(InventoryEntry.COLUMN_PRODUCT_REMAINDER, remainder);
-        values.put(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME, supplierName);
-        values.put(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE, supplierPhone);
-        // Insert new Product
-        if (mCurrentProductUri == null){
-
-            Uri newUri = getContentResolver().insert(InventoryEntry.CONTENT_URI, values);
-
-            if (newUri == null) {
-                // If the new content URI is null, then there was an error with insertion.
-                Toast.makeText(this, getString(R.string.insert_failed_edit_activity), Toast.LENGTH_SHORT).show();
-            } else {
-                // Otherwise, the insertion was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.insert_succed_edit_activity), Toast.LENGTH_SHORT).show();
-            }
-        }
-        // Update existing Product
-        else {
-            int rowsAffected = getContentResolver().update(mCurrentProductUri,values, null, null);
-
-            if (rowsAffected == 0) {
-                // If the new content URI is null, then there was an error with insertion.
-                Toast.makeText(this, getString(R.string.update_failed_edit_activity), Toast.LENGTH_SHORT).show();
-            } else {
-                // Otherwise, the insertion was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.update_succed_edit_activity), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
     // Delete an existing Product inside Detail Screen from Database
     private void deleteData (){
@@ -586,7 +576,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    public void onLoadFinished(Loader<Cursor> loader, final Cursor cursor) {
 
         if (cursor == null || cursor.getCount() < 1) {
             return;
@@ -595,12 +585,12 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
         // (This should be the only row in the cursor)
         if (cursor.moveToFirst()){
             // Find the columns of pet attributes that we're interested in
-            int productNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_NAME);
-            int productPriceColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_PRICE);
-            int remainderColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
-            int productImageColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_IMAGE);
-            int supplierNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME);
-            int supplierPhoneColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE);
+            final int productNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_NAME);
+            final int productPriceColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_PRICE);
+            final int remainderColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
+            final int productImageColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_IMAGE);
+            final int supplierNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME);
+            final int supplierPhoneColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE);
 
             // Extract out the value from the Cursor for the given column index
             String productName = cursor.getString(productNameColumnIndex);
@@ -612,7 +602,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
 
             //Log.d("Test", "EditActivity Imagepath: " + productImagePath);
 
-            String image = productImagePath;
+            final String image = productImagePath;
             Bitmap bitmap = null;
 
             try {
@@ -622,7 +612,7 @@ public class EditActivity extends AppCompatActivity implements LoaderManager.Loa
                 e.getMessage();
             }
 
-            //Log.d("Test", "onLoadFinished: Here image reloaded or loaded!");
+            Log.d("Test", "onLoadFinished: Here image reloaded or loaded!");
             //Log.d("Test", "onLoadFinished: mUrl = " + mUri);
 
             if (mUri == null){

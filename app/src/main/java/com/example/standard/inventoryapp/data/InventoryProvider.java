@@ -10,12 +10,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.standard.inventoryapp.R;
 import com.example.standard.inventoryapp.data.InventoryContract.InventoryEntry;
 
 import static android.R.attr.id;
+import static android.R.attr.name;
 
 /**
  * Created by vince on 12.04.2017.
@@ -154,43 +157,27 @@ public class InventoryProvider extends ContentProvider {
      */
     private Uri insertProduct (Uri uri, ContentValues values){
 
-        // Check that the name is not null
-        String name = values.getAsString(InventoryEntry.COLUMN_PRODUCT_NAME);
-        if (name == null) {
-            throw new IllegalArgumentException(getContext().getString(R.string.exception_four));
-        }
-        // Check that the price ist not null
-        Float price = values.getAsFloat(InventoryEntry.COLUMN_PRODUCT_PRICE);
-        if (price == null) {
-            throw new IllegalArgumentException(getContext().getString(R.string.exception_six));
-        }
-        // Check that the remainder is not null
-        Integer remainder = values.getAsInteger(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
-        if (remainder == null){
-            throw new IllegalArgumentException(getContext().getString(R.string.exception_seven));
-        }
-        // Check that the image is not null
-        String image = values.getAsString(InventoryEntry.COLUMN_PRODUCT_IMAGE);
-        if (image == null){
-            throw new IllegalArgumentException(getContext().getString(R.string.exception_eight));
+        boolean getAll = checkInputs(values);
+        if (getAll){
+            // Get writeable database
+            SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+            // Insert the new pet with the given values
+            long id = database.insert(InventoryEntry.TABLE_NAME, null, values);
+            // If the ID is -1, then the insertion failed. Log an error and return null.
+            if (id == -1) {
+                Log.e(LOG_TAG, getContext().getString(R.string.exception_nine) + uri);
+                return null;
+            }
+
+            // Notify all listeners that the data has changed for the pet content URI
+            getContext().getContentResolver().notifyChange(uri, null);
+
+            // Return the new URI with the ID (of the newly inserted row) appended at the end
+            return ContentUris.withAppendedId(uri, id);
         }
 
-        // Get writeable database
-        SQLiteDatabase database = mDbHelper.getWritableDatabase();
-
-        // Insert the new pet with the given values
-        long id = database.insert(InventoryEntry.TABLE_NAME, null, values);
-        // If the ID is -1, then the insertion failed. Log an error and return null.
-        if (id == -1) {
-            Log.e(LOG_TAG, getContext().getString(R.string.exception_nine) + uri);
-            return null;
-        }
-
-        // Notify all listeners that the data has changed for the pet content URI
-        getContext().getContentResolver().notifyChange(uri, null);
-
-        // Return the new URI with the ID (of the newly inserted row) appended at the end
-        return ContentUris.withAppendedId(uri, id);
+        return null;
     }
 
     @Override
@@ -245,34 +232,61 @@ public class InventoryProvider extends ContentProvider {
 
     private int updateProduct (Uri uri, ContentValues values, String selection, String[] selectionArgs){
 
-        if (values.containsKey(InventoryEntry.COLUMN_PRODUCT_NAME)){
-            // Check that the name is not null
-            String name = values.getAsString(InventoryEntry.COLUMN_PRODUCT_NAME);
-            if (name == null) {
-                throw new IllegalArgumentException(getContext().getString(R.string.exception_twelve));
+        boolean getAll = checkInputs(values);
+        if (getAll){
+
+            // Otherwise, get writeable database to update the data
+            SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+            // Perform the update on the database and get the number of rows affected
+            int rowsUpdated = database.update(InventoryEntry.TABLE_NAME, values, selection, selectionArgs);
+            if (rowsUpdated != 0){
+                getContext().getContentResolver().notifyChange(uri, null);
             }
+
+            // Returns the number of database rows affected by the update statement
+            return rowsUpdated;
+
         }
 
-        if (values.containsKey(InventoryEntry.COLUMN_PRODUCT_PRICE)) {
-            Float price = values.getAsFloat(InventoryEntry.COLUMN_PRODUCT_PRICE);
-
-        }
-
-        // If there are no values to update, then don't try to update the database
-        if (values.size() == 0) {
-            return 0;
-        }
-
-        // Otherwise, get writeable database to update the data
-        SQLiteDatabase database = mDbHelper.getWritableDatabase();
-
-        // Perform the update on the database and get the number of rows affected
-        int rowsUpdated = database.update(InventoryEntry.TABLE_NAME, values, selection, selectionArgs);
-        if (rowsUpdated != 0){
-            getContext().getContentResolver().notifyChange(uri, null);
-        }
-
-        // Returns the number of database rows affected by the update statement
-        return rowsUpdated;
+        return 0;
     }
+
+    public boolean checkInputs (ContentValues values){
+
+        String productName = values.getAsString(InventoryEntry.COLUMN_PRODUCT_NAME);
+        if (TextUtils.isEmpty(productName)){
+            Toast.makeText(getContext(), "Please insert a Product Name!",Toast.LENGTH_LONG).show();
+            return false;
+        }
+        Float productPrice = values.getAsFloat(InventoryEntry.COLUMN_PRODUCT_PRICE);
+        if (productPrice == 0.0){
+            Toast.makeText(getContext(), "Please insert a Price", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        Integer remainder = values.getAsInteger(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
+        if (remainder == 0){
+            Toast.makeText(getContext(), "Please insert a Remainder!",Toast.LENGTH_LONG).show();
+            return false;
+        }
+        String supplierName = values.getAsString(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME);
+        if (TextUtils.isEmpty(supplierName)){
+            Toast.makeText(getContext(), "Please insert a Supplier Name!",Toast.LENGTH_LONG).show();
+            return false;
+        }
+        Integer supplierPhone = values.getAsInteger(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE);
+        if (supplierPhone == 0){
+            Toast.makeText(getContext(), "Please insert a Supplier Phone!",Toast.LENGTH_LONG).show();
+            return false;
+        }
+        String productImage = values.getAsString(InventoryEntry.COLUMN_PRODUCT_IMAGE);
+        if (TextUtils.isEmpty(productImage)){
+            Toast.makeText(getContext(), "Please insert a Product Image!",Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+
+        return true;
+    }
+
 }
