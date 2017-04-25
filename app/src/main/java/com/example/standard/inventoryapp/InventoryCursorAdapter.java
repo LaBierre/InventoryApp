@@ -3,16 +3,9 @@ package com.example.standard.inventoryapp;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
-import android.text.TextUtils;
-import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,9 +48,14 @@ public class InventoryCursorAdapter extends CursorAdapter {
         return LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
     }
 
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        return super.getView(position, convertView, parent);
+    }
+
     /**
-     * This method binds the pet data (in the current row pointed to by cursor) to the given
-     * list item layout. For example, the name for the current pet can be set on the name TextView
+     * This method binds the product data (in the current row pointed to by cursor) to the given
+     * list item layout. For example, the name for the current product can be set on the name TextView
      * in the list item layout.
      *
      * @param view    Existing view, returned earlier by newView() method
@@ -82,41 +80,24 @@ public class InventoryCursorAdapter extends CursorAdapter {
         int priceColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_PRICE);
         int remainderColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
         int imageColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_IMAGE);
+        int supplierNameColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME);
+        int supplierPhoneColumnIndex = cursor.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE);
 
-        // Todo: Rename all String productImage to productImagePath
         // Extract properties from cursor
         final String productName = cursor.getString(nameColumnIndex);
         final float productPrice = cursor.getFloat(priceColumnIndex);
         int productRemainder = cursor.getInt(remainderColumnIndex);
-        String productImageText = cursor.getString(imageColumnIndex);
+        final String productImageText = cursor.getString(imageColumnIndex);
+        final String supplierName = cursor.getString(supplierNameColumnIndex);
+        final int supplierPhone = cursor.getInt(supplierPhoneColumnIndex);
 
-        Bitmap bitmap = null;
-
-        try {
-            byte [] encodeByte = Base64.decode(productImageText, Base64.DEFAULT);
-            bitmap = BitmapFactory.decodeByteArray(encodeByte,0, encodeByte.length);
-        } catch (Exception e){
-            e.getMessage();
-        }
-        image.setImageBitmap(bitmap);
-
-        //Log.d("Test", "CursorAdapter Imagepath: " + productImageText);
-
-        // If the user clicked "Insert Dummy Data" in the Options Menu showed in the Inventory
-        // Activity the cursor contains an emyty String "productImagePath" and the dummy image from
-        // drawable folder will be loaded in the Image View "image". In other case the saved
-        // productImagePath will be decoded and set as Bitmap in the Image View "image".
-//        if (TextUtils.isEmpty(productImagePath)){
-//            image.setImageResource(R.drawable.frohe_ostern);
-//        } else {
-//            image.setImageBitmap(BitmapFactory.decodeFile(productImagePath));
-//        }
+        image.setImageBitmap(BitmapFactory.decodeFile(productImageText));
+        image.setImageURI(Uri.parse(productImageText));
 
         // Populate fields with extracted properties
         name.setText(productName);
         price.setText(String.valueOf(productPrice));
         remainder.setText(String.valueOf(productRemainder));
-
 
         final long idCurrent = getItemId(cursor.getPosition());
 
@@ -125,11 +106,11 @@ public class InventoryCursorAdapter extends CursorAdapter {
             @Override
             public void onClick(View view) {
                 int rest = Integer.parseInt(remainder.getText().toString());
-                rest --;
+                rest--;
                 // Warn User if remainder get smaller than 50. finish substracting if remainder == 0
-                if (rest <= 50){
+                if (rest <= 50) {
                     Toast.makeText(context, context.getString(R.string.new_order_toast), Toast.LENGTH_LONG).show();
-                    if (rest <= 0){
+                    if (rest <= 0) {
                         rest = 0;
                     }
                 }
@@ -139,7 +120,10 @@ public class InventoryCursorAdapter extends CursorAdapter {
                 values.put(InventoryEntry.COLUMN_PRODUCT_NAME, productName);
                 values.put(InventoryEntry.COLUMN_PRODUCT_PRICE, productPrice);
                 values.put(InventoryEntry.COLUMN_PRODUCT_REMAINDER, rest);
-                long id = context.getContentResolver().update(currentItemUri,values, null, null);
+                values.put(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME, supplierName);
+                values.put(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE, supplierPhone);
+                values.put(InventoryEntry.COLUMN_PRODUCT_IMAGE, productImageText);
+                context.getContentResolver().update(currentItemUri, values, null, null);
             }
         });
     }

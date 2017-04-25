@@ -33,7 +33,7 @@
     <string name="update_succed_edit_activity">Updating Product succeed</string>
     <string name="delete_failed_edit_activity">Deleting Product failed</string>
     <string name="delete_succed_edit_activity">Deleting Product succeed</string>
-    <string name="new_order_toast">Please place a new Order!</string>
+    <string name="new_order_toast">Your Remainder is smaller then 50. Please place a new Order!</string>
 
     <!-- Button in Inventory-List-Layout -->
     <string name="add_button_list_layout">Add new Product</string>
@@ -73,5 +73,44 @@
     <string name="image_path_dummy">/storage/extSdCard/Images/Osterbilder/frohe-ostern.jpg</string>
     <string name="sale_to_big_toast">Your remainder is smaller than the sales volume. Please contact
         your Supplier and take an order.</string>
+
+    <!--Alert Dialogs-->
+    <string name="dialog_title_back_pressed">Discard Data!</string>
+    <string name="dialog_message_back_pressed">Are you sure you want to discard this Data and go
+        back to the List Screen?
+    </string>
+
+    <string name="dialog_title_delete">Delete Product!</string>
+    <string name="dialog_message_delete">Are you sure you want to delete this Product?</string>
+    <string name="dialog_message_delete_list">Are you sure you want to delete the Product List?</string>
+
+    <string name="dialog_title_save">Save Product!</string>
+    <string name="dialog_message_save">Do you want to save this changes?</string>
+
+    <string name="dialog_positive_button">Yes</string>
+    <string name="dialog_negative_button">No</string>
+    <string name="dialog_negative_button_edit">No, keep editing</string>
+
+    <!--Provider Toast Messages-->
+    <string name="provider_toast_name">Please insert a Product Name!</string>
+    <string name="provider_insert_message">Please insert a Price</string>
+    <string name="provider_remainder_message">Please insert a Remainder!</string>
+    <string name="provier_supplier_name_message">Please insert a Supplier Name!</string>
+    <string name="provider_supplier_phone_message">Please insert a Supplier Phone!</string>
+    <string name="provider_image_message">Please insert a Product Image!</string>
+
+    <!--String in onActivityResult method of EditActivity-->
+    <string name="take_image">data</string>
+
+    <!--List Item XML-->
+    <string name="name_item">Name:</string>
+    <string name="price_item">Price:</string>
+    <string name="left_item">Left:</string>
+    <string name="product_name_item">Product Name</string>
+    <string name="product_price_item">Price</string>
+    <string name="remainder_item">Remainder</string>
+    <string name="sale_item">Sale</string>
+    <string name="image_uri">android.resource://com.example.standard.inventoryapp/</string>
+    <string name="equal_symbol_provider">=?</string>
 
 </resources>

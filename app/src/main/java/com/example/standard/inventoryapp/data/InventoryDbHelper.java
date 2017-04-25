@@ -33,7 +33,7 @@ public class InventoryDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Create a String that contains the SQL statement to create the pets table
+        // Create a String that contains the SQL statement to create the products table
         String SQL_CREATE_PRODUCT_TABLE =  "CREATE TABLE " + InventoryEntry.TABLE_NAME + " ("
                 + InventoryEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + InventoryEntry.COLUMN_PRODUCT_NAME + " TEXT NOT NULL, "
@@ -55,6 +55,5 @@ public class InventoryDbHelper extends SQLiteOpenHelper {
 
         // Create tables again
         onCreate(db);
-
     }
 }

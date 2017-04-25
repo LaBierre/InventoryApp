@@ -17,9 +17,6 @@ import android.widget.Toast;
 import com.example.standard.inventoryapp.R;
 import com.example.standard.inventoryapp.data.InventoryContract.InventoryEntry;
 
-import static android.R.attr.id;
-import static android.R.attr.name;
-
 /**
  * Created by vince on 12.04.2017.
  */
@@ -30,10 +27,10 @@ public class InventoryProvider extends ContentProvider {
     /** Tag for the log messages */
     public static final String LOG_TAG = InventoryProvider.class.getSimpleName();
 
-    /** URI matcher code for the content URI for the pets table */
+    /** URI matcher code for the content URI for the product table */
     private static final int PRODUCTS = 100;
 
-    /** URI matcher code for the content URI for a single pet in the pets table */
+    /** URI matcher code for the content URI for a single product in the product table */
     private static final int PRODUCT_ID = 101;
 
     /**
@@ -50,11 +47,11 @@ public class InventoryProvider extends ContentProvider {
         // when a match is found.
 
         /*
-        * Sets the integer value for multiple rows in table "pets"
+        * Sets the integer value for multiple rows in table "products"
         * */
         sUriMatcher.addURI(InventoryContract.CONTENT_AUTHORITY, InventoryContract.PATH_PRODUCT, PRODUCTS);
         /*
-        * Sets a single row in table "pets"
+        * Sets a single row in table "products"
         */
         sUriMatcher.addURI(InventoryContract.CONTENT_AUTHORITY, InventoryContract.PATH_PRODUCT + "/#", PRODUCT_ID);
     }
@@ -84,20 +81,19 @@ public class InventoryProvider extends ContentProvider {
 
         switch (match) {
             case PRODUCTS:
-                // For the PETS code, query the pets table directly with the given
+                // For the product code, query the product table directly with the given
                 // projection, selection, selection arguments, and sort order. The cursor
-                // could contain multiple rows of the pets table.
+                // could contain multiple rows of the products table.
 
                 cursor = database.query(InventoryEntry.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
 
                 break;
             case PRODUCT_ID:
-                // For the PET_ID code, extract out the ID from the URI.
-                // For an example URI such as "content://com.example.android.pets/pets/3",
+                // For the PRODUCT_ID code, extract out the ID from the URI.
+                // For an example URI such as "content://com.example.standard.inventoryapp/products/3",
                 // the selection will be "_id=?" and the selection argument will be a
                 // String array containing the actual ID of 3 in this case.
-                //
                 // For every "?" in the selection, we need to have an element in the selection
                 // arguments that will fill in the "?". Since we have 1 question mark in the
                 // selection, we have 1 String in the selection arguments' String array.
@@ -105,7 +101,7 @@ public class InventoryProvider extends ContentProvider {
                 selection = InventoryEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
 
-                // This will perform a query on the pets table where the _id equals 3 to return a
+                // This will perform a query on the products table where the _id equals 3 to return a
                 // Cursor containing that row of the table.
                 cursor = database.query(InventoryEntry.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
@@ -162,7 +158,7 @@ public class InventoryProvider extends ContentProvider {
             // Get writeable database
             SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
-            // Insert the new pet with the given values
+            // Insert the new product with the given values
             long id = database.insert(InventoryEntry.TABLE_NAME, null, values);
             // If the ID is -1, then the insertion failed. Log an error and return null.
             if (id == -1) {
@@ -170,7 +166,7 @@ public class InventoryProvider extends ContentProvider {
                 return null;
             }
 
-            // Notify all listeners that the data has changed for the pet content URI
+            // Notify all listeners that the data has changed for the product content URI
             getContext().getContentResolver().notifyChange(uri, null);
 
             // Return the new URI with the ID (of the newly inserted row) appended at the end
@@ -192,7 +188,7 @@ public class InventoryProvider extends ContentProvider {
         switch (match) {
             case PRODUCTS:
                 // Delete all rows that match the selection and selection args
-                // For  case PETS:
+                // For  case PRODUCTS:
                 rowsDeleted = database.delete(InventoryEntry.TABLE_NAME, selection, selectionArgs);
 
                 return rowsDeleted;
@@ -201,7 +197,7 @@ public class InventoryProvider extends ContentProvider {
                 selection = InventoryEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
 
-                // For case PET_ID:
+                // For case PRODUCT_ID:
                 // Delete a single row given by the ID in the URI
                 rowsDeleted = database.delete(InventoryEntry.TABLE_NAME, selection, selectionArgs);
 
@@ -219,10 +215,10 @@ public class InventoryProvider extends ContentProvider {
             case PRODUCTS:
                 return updateProduct(uri, values, selection, selectionArgs);
             case PRODUCT_ID:
-                // For the PET_ID code, extract out the ID from the URI,
+                // For the PRODUCT_ID code, extract out the ID from the URI,
                 // so we know which row to update. Selection will be "_id=?" and selection
                 // arguments will be a String array containing the actual ID.
-                selection = InventoryEntry._ID + "=?";
+                selection = InventoryEntry._ID + getContext().getString(R.string.equal_symbol_provider);
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
                 return updateProduct(uri, values, selection, selectionArgs);
             default:
@@ -256,37 +252,34 @@ public class InventoryProvider extends ContentProvider {
 
         String productName = values.getAsString(InventoryEntry.COLUMN_PRODUCT_NAME);
         if (TextUtils.isEmpty(productName)){
-            Toast.makeText(getContext(), "Please insert a Product Name!",Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getContext().getString(R.string.provider_toast_name),Toast.LENGTH_SHORT).show();
             return false;
         }
         Float productPrice = values.getAsFloat(InventoryEntry.COLUMN_PRODUCT_PRICE);
         if (productPrice == 0.0){
-            Toast.makeText(getContext(), "Please insert a Price", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getContext().getString(R.string.provider_insert_message), Toast.LENGTH_SHORT).show();
             return false;
         }
         Integer remainder = values.getAsInteger(InventoryEntry.COLUMN_PRODUCT_REMAINDER);
         if (remainder == 0){
-            Toast.makeText(getContext(), "Please insert a Remainder!",Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getContext().getString(R.string.provider_remainder_message),Toast.LENGTH_SHORT).show();
             return false;
         }
         String supplierName = values.getAsString(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_NAME);
         if (TextUtils.isEmpty(supplierName)){
-            Toast.makeText(getContext(), "Please insert a Supplier Name!",Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getContext().getString(R.string.provier_supplier_name_message),Toast.LENGTH_SHORT).show();
             return false;
         }
         Integer supplierPhone = values.getAsInteger(InventoryEntry.COLUMN_PRODUCT_SUPPLIER_PHONE);
         if (supplierPhone == 0){
-            Toast.makeText(getContext(), "Please insert a Supplier Phone!",Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getContext().getString(R.string.provider_supplier_phone_message),Toast.LENGTH_SHORT).show();
             return false;
         }
         String productImage = values.getAsString(InventoryEntry.COLUMN_PRODUCT_IMAGE);
         if (TextUtils.isEmpty(productImage)){
-            Toast.makeText(getContext(), "Please insert a Product Image!",Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getContext().getString(R.string.provider_image_message),Toast.LENGTH_SHORT).show();
             return false;
         }
-
-
         return true;
     }
-
 }

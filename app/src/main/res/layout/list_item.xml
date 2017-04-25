@@ -1,43 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
     android:descendantFocusability="blocksDescendants"
-    android:gravity="center">
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:paddingBottom="8dp"
+    android:paddingTop="8dp">
 
     <ImageView
+        android:id="@+id/image_list"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:id="@+id/image_list"
-        android:src="@mipmap/ic_launcher"/>
+        android:src="@mipmap/ic_launcher" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_weight="2">
+        android:layout_weight="2"
+        android:orientation="vertical">
 
         <TextView
             style="@style/ListItem_Text_1"
-            android:text="Name:"
-            android:textSize="18sp"/>
+            android:text="@string/name_item"
+            android:textSize="18sp" />
 
         <TextView
             style="@style/ListItem_Text_1"
-            android:text="Price:"
+            android:paddingBottom="5dp"
             android:paddingTop="5dp"
-            android:paddingBottom="5dp"/>
+            android:text="@string/price_item" />
 
         <TextView
             style="@style/ListItem_Text_1"
-            android:text="Left:"/>
-
-
-
+            android:text="@string/left_item" />
 
     </LinearLayout>
 
@@ -45,36 +42,32 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="3"
-        android:orientation="vertical"
-        >
+        android:orientation="vertical">
 
         <TextView
-            style="@style/ListItem_Text_2"
-            tools:text="Product Name"
             android:id="@+id/product_name_text"
-            android:textSize="18sp"/>
+            style="@style/ListItem_Text_2"
+            android:textSize="18sp"
+            tools:text="@string/product_name_item" />
 
         <TextView
-            style="@style/ListItem_Text_2"
-            tools:text="Price"
             android:id="@+id/price_text"
+            style="@style/ListItem_Text_2"
+            android:paddingBottom="5dp"
             android:paddingTop="5dp"
-            android:paddingBottom="5dp"/>
+            tools:text="@string/product_price_item" />
 
         <TextView
+            android:id="@+id/remainder_text"
             style="@style/ListItem_Text_2"
-            tools:text="Remainder"
-            android:id="@+id/remainder_text"/>
-
-
-
+            tools:text="@string/remainder_item" />
 
     </LinearLayout>
 
     <Button
+        android:id="@+id/sale_btn_list"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:id="@+id/sale_btn_list"
-        android:text="Sale"/>
+        android:text="@string/sale_item" />
 
 </LinearLayout>
